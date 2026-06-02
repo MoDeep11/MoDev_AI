@@ -3,4 +3,3 @@
 .modev-output/
 __pycache__/
 *.egg-info/
-.env

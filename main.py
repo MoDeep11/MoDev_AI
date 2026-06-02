@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from modev.api import app
@@ -34,9 +35,9 @@ def main() -> None:
     )
 
     for event in stream_generation_events(request, Path(args.output), use_ai=not args.dry_run):
-        print(f"event: {event['event']}")
-        print(f"data: {json.dumps(event['data'], ensure_ascii=False)}")
-        print()
+        sys.stdout.write(f"event: {event['event']}\n")
+        sys.stdout.write(f"data: {json.dumps(event['data'], ensure_ascii=False)}\n\n")
+        sys.stdout.flush()
 
 
 if __name__ == "__main__":

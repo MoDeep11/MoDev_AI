@@ -1,0 +1,14 @@
+services:
+  modev-ai:
+    build:
+      context: .
+    container_name: modev-ai
+    env_file:
+      - .env
+    environment:
+      PYTHONUNBUFFERED: "1"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.modev-output:/app/.modev-output
+    restart: unless-stopped
