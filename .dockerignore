@@ -1,0 +1,13 @@
+.git
+.venv
+.env
+.modev-output
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+Dockerfile
+docker-compose.yml

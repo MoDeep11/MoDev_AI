@@ -75,7 +75,12 @@ def verify_internal_api_key(
     x_internal_api_key: Annotated[str | None, Header(alias="X-Internal-API-Key")] = None,
 ) -> None:
     expected = load_env_value("INTERNAL_API_KEY")
-    if expected and x_internal_api_key != expected:
+    if not expected:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"code": "AUTH_MISCONFIGURED", "message": "INTERNAL_API_KEY is not configured."},
+        )
+    if x_internal_api_key != expected:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail={"code": "UNAUTHORIZED", "message": "유효하지 않은 Internal API Key입니다."},
@@ -84,7 +89,6 @@ def verify_internal_api_key(
 
 @app.post("/ai/structures/generate", dependencies=[Depends(verify_internal_api_key)])
 def generate_structure(payload: GenerateStructureRequest) -> StreamingResponse:
-    known_projects.add(payload.project_id)
     request = _to_project_request(payload.project_id, payload)
     return _sse_response(request)
 
@@ -94,6 +98,11 @@ def regenerate_structure(
     payload: RegenerateStructureRequest,
     projectId: Annotated[str, ApiPath(min_length=1)],
 ) -> StreamingResponse:
+    if "/" in projectId or "\\" in projectId or ".." in projectId:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "VALIDATION_ERROR", "message": "projectId contains unsafe characters"},
+        )
     if projectId not in known_projects and not (OUTPUT_DIR / projectId).exists():
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -112,6 +121,8 @@ def _sse_response(request: ProjectRequest) -> StreamingResponse:
             use_ai=_use_ai_generation(),
             include_connected=False,
         ):
+            if event["event"] == "complete":
+                known_projects.add(request.project_id)
             yield f"event: {event['event']}\n"
             yield f"data: {json.dumps(event['data'], ensure_ascii=False)}\n\n"
 

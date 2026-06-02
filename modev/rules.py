@@ -78,6 +78,14 @@ DOMAIN_BASE_DIRECTORIES = {
 
 def build_generation_plan(request: ProjectRequest) -> GenerationPlan:
     normalized_stacks = [_normalize_stack(stack.name) for stack in request.stacks]
+    unsupported = [
+       stack.name
+        for stack, normalized in zip(request.stacks, normalized_stacks)
+        if normalized not in STACKS
+    ]
+    if unsupported:
+        raise ValueError(f"Unsupported stacks: {', '.join(unsupported)}")
+
     selected_rules = [STACKS[stack] for stack in normalized_stacks if stack in STACKS]
     layer_counts = Counter(rule["layer"] for rule in selected_rules if rule["layer"] in {"Frontend", "Backend"})
 
@@ -129,7 +137,7 @@ def build_generation_plan(request: ProjectRequest) -> GenerationPlan:
         directories=_unique_sorted_paths(directories),
         required_files=_unique_sorted_paths(required_files),
         stack_conventions=stack_conventions,
-        stacks=[stack for stack in request.stacks if _normalize_stack(stack.name) in STACKS],
+        stacks=request.stacks,
         dependencies=request.dependencies,
     )
 

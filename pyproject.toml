@@ -1,7 +1,7 @@
 [project]
 name = "modev"
 version = "0.1.0"
-description = "Add your description here"
+description = "AI-powered project structure generation system with FastAPI and Gemini integration"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

@@ -94,3 +94,5 @@ def validate_safe_path(path: str) -> None:
         raise ValueError(f"Path contains an unsafe segment: {path}")
     if "\\" in path:
         raise ValueError(f"Path must use POSIX separators: {path}")
+    if str(pure_path) != path:
+        raise ValueError(f"Path must use normalized POSIX syntax: {path}")

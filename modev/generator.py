@@ -11,6 +11,29 @@ from modev.models import GeneratedItem, ProjectRequest, validate_safe_path
 from modev.prompts import SYSTEM_PROMPT, render_user_prompt
 from modev.rules import build_generation_plan
 
+def _materialize_project(project_dir: Path, items: list[GeneratedItem]) -> None:
+    staging_dir = project_dir.parent / f".{project_dir.name}.{uuid.uuid4().hex}.tmp"
+    backup_dir: Path | None = None
+    if staging_dir.exists():
+        shutil.rmtree(staging_dir)
+
+    _write_items(staging_dir, items)
+
+    try:
+        if project_dir.exists():
+            backup_dir = project_dir.parent / f".{project_dir.name}.{uuid.uuid4().hex}.bak"
+            project_dir.replace(backup_dir)
+        staging_dir.replace(project_dir)
+    except Exception:
+        if staging_dir.exists():
+            shutil.rmtree(staging_dir)
+        if backup_dir is not None and backup_dir.exists() and not project_dir.exists():
+            backup_dir.replace(project_dir)
+        raise
+    else:
+        if backup_dir is not None and backup_dir.exists():
+            shutil.rmtree(backup_dir)
+
 
 def generate_project(
     request: ProjectRequest,
@@ -25,9 +48,7 @@ def generate_project(
         items = _plan_only_items(plan.directories, plan.required_files)
 
     project_dir = output_dir / request.project_id
-    if project_dir.exists():
-        shutil.rmtree(project_dir)
-    _write_items(project_dir, items)
+    _materialize_project(project_dir, items)
     return items, project_dir
 
 
@@ -56,9 +77,7 @@ def stream_generation_events(
             items = _plan_only_items(plan.directories, plan.required_files)
 
         project_dir = output_dir / request.project_id
-        if project_dir.exists():
-            shutil.rmtree(project_dir)
-        _write_items(project_dir, items)
+        _materialize_project(project_dir, items)
 
         total_files = 0
         total_directories = 0
@@ -106,7 +125,7 @@ def stream_generation_events(
 
 
 def new_project_id() -> str:
-    return uuid.uuid4().hex[:8]
+    return uuid.uuid4().hex
 
 
 def _write_items(project_dir: Path, items: list[GeneratedItem]) -> None:

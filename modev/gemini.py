@@ -47,7 +47,7 @@ class GeminiClient:
         try:
             return parse_generated_items(response.text or "")
         except ValueError as exc:
-            raise GeminiGenerationError("GEMINI_RESPONSE_INVALID_JSON", str(exc)) from exc
+            raise GeminiGenerationError("GEMINI_RESPONSE_INVALID", str(exc)) from exc
 
 
 def parse_generated_items(raw_text: str) -> list[GeneratedItem]:
