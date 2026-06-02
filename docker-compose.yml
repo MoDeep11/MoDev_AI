@@ -11,6 +11,11 @@ services:
       - "127.0.0.1:8000:8000"
 services:
   modev-ai:
+    ports:
+      - "8000:8000"
+    volumes:
+      - modev-output:/app/.modev-output
+    restart: unless-stopped
     volumes:
       - modev-output:/app/.modev-output
     restart: unless-stopped
