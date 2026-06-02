@@ -22,4 +22,3 @@ services:
 
 volumes:
   modev-output:
-    restart: unless-stopped
