@@ -9,6 +9,12 @@ services:
       PYTHONUNBUFFERED: "1"
     ports:
       - "8000:8000"
+services:
+  modev-ai:
     volumes:
-      - ./.modev-output:/app/.modev-output
+      - modev-output:/app/.modev-output
+    restart: unless-stopped
+
+volumes:
+  modev-output:
     restart: unless-stopped
