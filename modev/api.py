@@ -46,6 +46,7 @@ class TechStackDto(BaseModel):
 
 class DependencyDto(BaseModel):
     name: str = Field(min_length=1)
+    version: str | None = None
     tech_stack_name: str | None = Field(default=None, alias="techStackName")
 
 
@@ -147,7 +148,11 @@ def _to_project_request(
         domains=[field.name for field in payload.fields],
         stacks=[TechStack(name=stack.name, version=stack.version) for stack in payload.tech_stacks],
         dependencies=[
-            Dependency(name=dependency.name, tech_stack_name=dependency.tech_stack_name)
+            Dependency(
+                name=dependency.name,
+                version=dependency.version,
+                tech_stack_name=dependency.tech_stack_name,
+            )
             for dependency in payload.dependencies
         ],
     )
