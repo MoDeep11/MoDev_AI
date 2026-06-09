@@ -9,14 +9,24 @@ from modev.gemini import load_env_value
 
 class ApiTests(unittest.TestCase):
     def setUp(self) -> None:
+        self.original_modev_use_ai = os.environ.get("MODEV_USE_AI")
+        self.original_internal_api_key = os.environ.get("INTERNAL_API_KEY")
         os.environ["MODEV_USE_AI"] = "false"
+        os.environ["INTERNAL_API_KEY"] = "test-key"
         known_projects.clear()
         self.client = TestClient(app)
         internal_api_key = load_env_value("INTERNAL_API_KEY")
-        self.headers = {"X-Internal-API-Key": internal_api_key} if internal_api_key else {}
+        self.headers = {"X-Internal-API-Key": internal_api_key}
 
     def tearDown(self) -> None:
-        os.environ.pop("MODEV_USE_AI", None)
+        if self.original_modev_use_ai is None:
+            os.environ.pop("MODEV_USE_AI", None)
+        else:
+            os.environ["MODEV_USE_AI"] = self.original_modev_use_ai
+        if self.original_internal_api_key is None:
+            os.environ.pop("INTERNAL_API_KEY", None)
+        else:
+            os.environ["INTERNAL_API_KEY"] = self.original_internal_api_key
         known_projects.clear()
 
     def test_generate_structure_streams_events(self) -> None:
