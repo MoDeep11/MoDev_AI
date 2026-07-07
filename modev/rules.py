@@ -24,6 +24,14 @@ STACKS = {
         "directories": ["app", "components", "lib", "public", "styles"],
         "files": ["package.json", "app/page.tsx", "app/layout.tsx", "next.config.js"],
     },
+    "vue": {
+        "name": "Vue",
+        "layer": "Frontend",
+        "base": "frontend",
+        "multi_base": "vue-app",
+        "directories": ["src", "src/components", "src/views", "src/router", "src/stores", "public"],
+        "files": ["package.json", "src/main.ts", "src/App.vue", "index.html"],
+    },
     "spring boot": {
         "name": "Spring Boot",
         "layer": "Backend",
@@ -56,6 +64,46 @@ STACKS = {
         "directories": ["app", "app/routers", "app/models", "app/schemas", "app/core", "tests"],
         "files": ["requirements.txt", "app/main.py", "app/core/config.py"],
     },
+    "django": {
+        "name": "Django",
+        "layer": "Backend",
+        "base": "backend",
+        "multi_base": "django-service",
+        "directories": ["config", "apps", "apps/api", "apps/common", "templates", "static", "tests"],
+        "files": ["requirements.txt", "manage.py", "config/settings.py", "config/urls.py"],
+    },
+    "gin": {
+        "name": "Gin",
+        "layer": "Backend",
+        "base": "backend",
+        "multi_base": "gin-service",
+        "directories": ["cmd/server", "internal/handlers", "internal/services", "internal/models", "pkg", "tests"],
+        "files": ["go.mod", "cmd/server/main.go", "internal/handlers/router.go"],
+    },
+    "postgresql": {
+        "name": "PostgreSQL",
+        "layer": "Database",
+        "base": "database/postgresql",
+        "multi_base": "postgresql",
+        "directories": ["init", "migrations", "backups"],
+        "files": ["init/001_init.sql", "README.md"],
+    },
+    "mysql": {
+        "name": "MySQL",
+        "layer": "Database",
+        "base": "database/mysql",
+        "multi_base": "mysql",
+        "directories": ["init", "migrations", "backups"],
+        "files": ["init/001_init.sql", "README.md"],
+    },
+    "redis": {
+        "name": "Redis",
+        "layer": "Database",
+        "base": "database/redis",
+        "multi_base": "redis",
+        "directories": ["config", "scripts"],
+        "files": ["config/redis.conf", "README.md"],
+    },
     "docker": {
         "name": "Docker",
         "layer": "DevOps",
@@ -63,6 +111,38 @@ STACKS = {
         "multi_base": "docker",
         "directories": [],
         "files": [],
+    },
+    "kubernetes": {
+        "name": "Kubernetes",
+        "layer": "DevOps",
+        "base": "k8s",
+        "multi_base": "kubernetes",
+        "directories": ["base", "overlays/dev", "overlays/prod"],
+        "files": ["base/deployment.yaml", "base/service.yaml", "base/kustomization.yaml"],
+    },
+    "ingress-nginx": {
+        "name": "ingress-nginx",
+        "layer": "DevOps",
+        "base": "k8s/ingress-nginx",
+        "multi_base": "ingress-nginx",
+        "directories": ["manifests"],
+        "files": ["manifests/ingress.yaml", "README.md"],
+    },
+    "langchain": {
+        "name": "LangChain",
+        "layer": "AI",
+        "base": "ai/langchain",
+        "multi_base": "langchain",
+        "directories": ["chains", "prompts", "retrievers", "tests"],
+        "files": ["requirements.txt", "chains/main.py", "prompts/system.md"],
+    },
+    "openai python sdk": {
+        "name": "OpenAI Python SDK",
+        "layer": "AI",
+        "base": "ai/openai",
+        "multi_base": "openai-python",
+        "directories": ["clients", "prompts", "tests"],
+        "files": ["requirements.txt", "clients/openai_client.py", "prompts/system.md"],
     },
 }
 
@@ -72,14 +152,17 @@ DOMAIN_BASE_DIRECTORIES = {
     "fe": "frontend",
     "backend": "backend",
     "be": "backend",
+    "database": "database",
+    "db": "database",
     "devops": "docker",
+    "ai": "ai",
 }
 
 
 def build_generation_plan(request: ProjectRequest) -> GenerationPlan:
     normalized_stacks = [_normalize_stack(stack.name) for stack in request.stacks]
     unsupported = [
-       stack.name
+        stack.name
         for stack, normalized in zip(request.stacks, normalized_stacks)
         if normalized not in STACKS
     ]
@@ -96,6 +179,10 @@ def build_generation_plan(request: ProjectRequest) -> GenerationPlan:
             directories.append(base)
     if "docker" in normalized_stacks or any(rule["layer"] == "DevOps" for rule in selected_rules):
         directories.append("docker")
+    if any(rule["layer"] == "Database" for rule in selected_rules):
+        directories.append("database")
+    if any(rule["layer"] == "AI" for rule in selected_rules):
+        directories.append("ai")
 
     stack_conventions: list[dict[str, object]] = []
     required_files = ["README.md", ".gitignore", ".env.example"]
@@ -151,6 +238,14 @@ def _normalize_stack(stack: str) -> str:
         "spring": "spring boot",
         "nest": "nestjs",
         "node": "nestjs",
+        "postgres": "postgresql",
+        "postgresql": "postgresql",
+        "k8s": "kubernetes",
+        "ingress nginx": "ingress-nginx",
+        "ingressnginx": "ingress-nginx",
+        "openai": "openai python sdk",
+        "openai sdk": "openai python sdk",
+        "openai-python": "openai python sdk",
     }
     return aliases.get(value, value)
 
