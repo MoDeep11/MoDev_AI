@@ -46,6 +46,30 @@ class GeminiParserTests(unittest.TestCase):
                 """
             )
 
+    def test_reject_numeric_file_content(self) -> None:
+        with self.assertRaises(ValueError):
+            parse_generated_items(
+                """
+                {
+                  "items": [
+                    {"type": "file", "path": "frontend/src/App.tsx", "content": "16643"}
+                  ]
+                }
+                """
+            )
+
+    def test_reject_placeholder_file_content(self) -> None:
+        with self.assertRaises(ValueError):
+            parse_generated_items(
+                """
+                {
+                  "items": [
+                    {"type": "file", "path": "README.md", "content": "string"}
+                  ]
+                }
+                """
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
