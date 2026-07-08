@@ -21,6 +21,8 @@ SYSTEM_PROMPT = """너는 프로젝트 부트스트래핑 플랫폼 MoDev의 AI 
 8. 절대 경로, `..`, `~`, 백슬래시 경로를 사용하지 않는다.
 9. generation_plan의 directories와 required_files를 반드시 모두 포함한다.
 10. 모든 file 항목의 content는 비어 있으면 안 된다.
+11. file 항목의 content는 실제 파일 전체 내용이어야 하며 파일 ID, 번호, 인덱스, 참조값, placeholder를 넣지 않는다.
+12. content가 숫자만 있는 문자열이거나 `string`, `null`, `undefined` 같은 예시값이면 실패 응답으로 간주된다.
 """
 
 
@@ -49,7 +51,7 @@ def render_user_prompt(request: ProjectRequest, plan: GenerationPlan) -> str:
             },
             "items": [
                 {"type": "directory", "path": "string"},
-                {"type": "file", "path": "string", "content": "string"},
+                {"type": "file", "path": "string", "content": "complete file contents"},
             ],
         },
     }

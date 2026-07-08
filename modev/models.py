@@ -70,6 +70,8 @@ class GeneratedItem:
         validate_safe_path(item.path)
         if item.type == "file" and not item.content.strip():
             raise ValueError(f"Generated file must not be empty: {item.path}")
+        if item.type == "file" and _is_placeholder_content(item.content):
+            raise ValueError(f"Generated file content is a placeholder: {item.path}")
         return item
 
 
@@ -96,3 +98,8 @@ def validate_safe_path(path: str) -> None:
         raise ValueError(f"Path must use POSIX separators: {path}")
     if str(pure_path) != path:
         raise ValueError(f"Path must use normalized POSIX syntax: {path}")
+
+
+def _is_placeholder_content(content: str) -> bool:
+    value = content.strip().lower()
+    return value.isdigit() or value in {"string", "null", "undefined", "none"}
